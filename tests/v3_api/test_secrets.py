@@ -1,4 +1,4 @@
-from common import *    # NOQA
+from .common import *    # NOQA
 import pytest
 import base64
 
@@ -111,8 +111,8 @@ def test_edit_secret_all_ns():
     assert updated_secret['baseType'] == "secret"
     updatedsecretdata = updated_secret['data']
 
-    print "UPDATED SECRET DATA"
-    print updatedsecretdata
+    print("UPDATED SECRET DATA")
+    print(updatedsecretdata)
 
     assert cmp(updatedsecretdata, updated_dict) == 0
 
@@ -153,8 +153,8 @@ def test_edit_secret_single_ns():
     assert updated_secret['baseType'] == "namespacedSecret"
     updatedsecretdata = updated_secret['data']
 
-    print "UPDATED SECRET DATA"
-    print updatedsecretdata
+    print("UPDATED SECRET DATA")
+    print(updatedsecretdata)
 
     assert cmp(updatedsecretdata, updated_dict) == 0
 
@@ -199,39 +199,39 @@ def validate_workload_with_secret(p_client, workload,
     pod_list = p_client.list_pod(workloadId=workload.id)
     mountpath = "/test"
     for i in range(0, len(keyvaluepair)):
-        key = keyvaluepair.keys()[i]
+        key = list(keyvaluepair.keys())[i]
         if workloadwithsecretasVolume:
             key_file_in_pod = mountpath + "/" + key
-            print key_file_in_pod
+            print(key_file_in_pod)
             command = "cat " + key_file_in_pod + ''
-            print " Command to display secret value from container is: "
-            print command
+            print(" Command to display secret value from container is: ")
+            print(command)
             result = kubectl_pod_exec(pod_list[0], command)
-            assert result == base64.b64decode(keyvaluepair.values()[i])
+            assert result == base64.b64decode(list(keyvaluepair.values())[i])
         elif workloadwithsecretasenvvar:
             command = 'env'
             result = kubectl_pod_exec(pod_list[0], command)
-            if base64.b64decode(keyvaluepair.values()[i]) in result:
+            if base64.b64decode(list(keyvaluepair.values())[i]) in result:
                 assert True
 
 
 def delete_secret(client, secret, ns, keyvaluepair):
 
-    key = keyvaluepair.keys()[0]
+    key = list(keyvaluepair.keys())[0]
 
-    print "Delete Secret"
+    print("Delete Secret")
     client.delete(secret)
 
     # Sleep to allow for the secret to be deleted
     time.sleep(5)
-    print "Secret list after deleting secret"
+    print("Secret list after deleting secret")
     secretdict = client.list_secret()
-    print secretdict
-    print secretdict.get('data')
+    print(secretdict)
+    print((secretdict.get('data')))
     if len(secretdict.get('data')) > 0:
         testdata = secretdict.get('data')
-        print "TESTDATA"
-        print testdata[0]['data']
+        print("TESTDATA")
+        print((testdata[0]['data']))
         if key in testdata[0]['data']:
             assert False
         else:
@@ -241,13 +241,13 @@ def delete_secret(client, secret, ns, keyvaluepair):
 
     # Verify secret is deleted by "kubectl get secret" command
     command = " get secret " + secret['name'] + " --namespace=" + ns.name
-    print "Command to obtain the secret"
-    print command
+    print("Command to obtain the secret")
+    print(command)
     result = execute_kubectl_cmd(command, json_out=False, stderr=True)
-    print result
+    print(result)
 
-    print "Verify that the secret does not exist " \
-          "and the error code returned is non zero "
+    print("Verify that the secret does not exist " \
+          "and the error code returned is non zero ")
     if result != 0:
         assert True
 
@@ -321,10 +321,10 @@ def create_secret(keyvaluepair, singlenamespace=False):
                                                    data=keyvaluepair)
         assert secret['baseType'] == "namespacedSecret"
 
-    print secret
+    print(secret)
     secretdata = secret['data']
-    print "SECRET DATA"
-    print secretdata
+    print("SECRET DATA")
+    print(secretdata)
     assert cmp(secretdata, keyvaluepair) == 0
 
     return secret

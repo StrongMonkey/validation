@@ -1,4 +1,4 @@
-from common import *   # NOQA
+from .common import *   # NOQA
 import pytest
 import requests
 from cattle import ApiError
@@ -270,7 +270,7 @@ def validate_project_owner(user_token, cluster, project, namespace):
 def validate_project_member(user_token, cluster, project, namespace):
     user2, user2_token = create_user(get_admin_client())
     # Assert that user1 is able to see cluster
-    user_client = cattle.Client(url=CATTLE_API_URL, token=user_token,
+    user_client = rancher.Client(url=CATTLE_API_URL, token=user_token,
                                 verify=False)
     clusters = user_client.list_cluster()
     assert len(clusters) == 1
@@ -317,7 +317,7 @@ def get_user_token(user):
         'password': user_password,
         'responseType': 'json',
     }, verify=False)
-    print r.json()
+    print((r.json()))
     return r.json()["token"]
 
 

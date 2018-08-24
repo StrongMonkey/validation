@@ -1,4 +1,4 @@
-from common import *   # NOQA
+from .common import *   # NOQA
 import pytest
 namespace = {"p_client": None, "ns": None, "cluster": None, "project": None}
 random_password = random_test_name("pass")

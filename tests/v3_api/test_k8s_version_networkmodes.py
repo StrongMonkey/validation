@@ -1,4 +1,4 @@
-from common import *   # NOQA
+from .common import *   # NOQA
 from lib.aws import AmazonWebServices
 
 k8s_version = "v1.10.1-rancher1"

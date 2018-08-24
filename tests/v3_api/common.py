@@ -2,7 +2,7 @@ import random
 import time
 import inspect
 import os
-import cattle
+import rancher
 import subprocess
 import json
 import paramiko
@@ -40,28 +40,28 @@ def random_test_name(name="test"):
 
 
 def get_admin_client():
-    return cattle.Client(url=CATTLE_API_URL, token=ADMIN_TOKEN, verify=False)
+    return rancher.Client(url=CATTLE_API_URL, token=ADMIN_TOKEN, verify=False)
 
 
 def get_client_for_token(token):
-    return cattle.Client(url=CATTLE_API_URL, token=token, verify=False)
+    return rancher.Client(url=CATTLE_API_URL, token=token, verify=False)
 
 
 def get_project_client_for_token(project, token):
     p_url = project.links['self'] + '/schemas'
-    p_client = cattle.Client(url=p_url, token=token, verify=False)
+    p_client = rancher.Client(url=p_url, token=token, verify=False)
     return p_client
 
 
 def get_cluster_client_for_token(cluster, token):
     c_url = cluster.links['self'] + '/schemas'
-    c_client = cattle.Client(url=c_url, token=token, verify=False)
+    c_client = rancher.Client(url=c_url, token=token, verify=False)
     return c_client
 
 
 def up(cluster, token):
     c_url = cluster.links['self'] + '/schemas'
-    c_client = cattle.Client(url=c_url, token=token, verify=False)
+    c_client = rancher.Client(url=c_url, token=token, verify=False)
     return c_client
 
 
@@ -185,7 +185,7 @@ def change_member_role_in_project(client, user, prtb, role_template_id):
 
 def create_kubeconfig(cluster):
     generateKubeConfigOutput = cluster.generateKubeconfig()
-    print generateKubeConfigOutput.config
+    print((generateKubeConfigOutput.config))
     file = open(kube_fname, "w")
     file.write(generateKubeConfigOutput.config)
     file.close()
@@ -195,7 +195,7 @@ def validate_psp_error_worklaod(p_client, workload, error_message):
     workload = wait_for_wl_transitioning(p_client, workload)
     assert workload.state == "updating"
     assert workload.transitioning == "error"
-    print workload.transitioningMessage
+    print((workload.transitioningMessage))
     assert error_message in workload.transitioningMessage
 
 
@@ -220,7 +220,7 @@ def validate_workload(p_client, workload, type, ns_name, pod_count=1,
     if type == "cronJob":
         assert len(wl_result["status"]["active"]) >= pod_count
         return
-    for key, value in workload.workloadLabels.iteritems():
+    for key, value in list(workload.workloadLabels.items()):
         label = key+"="+value
     get_pods = "get pods -l" + label + " -n " + ns_name
     pods_result = execute_kubectl_cmd(get_pods)
@@ -241,7 +241,7 @@ def validate_workload_with_sidekicks(p_client, workload, type, ns_name,
     wl_result = execute_kubectl_cmd(
         "get " + type + " " + workload.name + " -n " + ns_name)
     assert wl_result["status"]["readyReplicas"] == pod_count
-    for key, value in workload.workloadLabels.iteritems():
+    for key, value in list(workload.workloadLabels.items()):
         label = key+"="+value
     get_pods = "get pods -l" + label + " -n " + ns_name
     execute_kubectl_cmd(get_pods)
@@ -260,7 +260,7 @@ def validate_workload_paused(p_client, workload, expectedstatus):
 
 
 def validate_pod_images(expectedimage, workload, ns_name):
-    for key, value in workload.workloadLabels.iteritems():
+    for key, value in list(workload.workloadLabels.items()):
         label = key + "=" + value
     get_pods = "get pods -l" + label + " -n " + ns_name
     pods = execute_kubectl_cmd(get_pods)
@@ -270,7 +270,7 @@ def validate_pod_images(expectedimage, workload, ns_name):
 
 
 def validate_pods_are_running_by_id(expectedpods, workload, ns_name):
-    for key, value in workload.workloadLabels.iteritems():
+    for key, value in list(workload.workloadLabels.items()):
         label = key + "=" + value
     get_pods = "get pods -l" + label + " -n " + ns_name
     pods = execute_kubectl_cmd(get_pods)
@@ -300,7 +300,7 @@ def execute_kubectl_cmd(cmd, json_out=True, stderr=False):
         result = run_command(command)
     if json_out:
         result = json.loads(result)
-    print result
+    print(result)
     return result
 
 
@@ -419,7 +419,7 @@ def validate_ingress(p_client, cluster, workloads, host, path,
     target_name_list = []
     for pod in pods:
         target_name_list.append(pod.name)
-    print "target name list:" + str(target_name_list)
+    print(("target name list:" + str(target_name_list)))
     for node in nodes:
         target_hit_list = target_name_list[:]
         host_ip = node.externalIpAddress
@@ -427,10 +427,10 @@ def validate_ingress(p_client, cluster, workloads, host, path,
             if len(target_hit_list) == 0:
                 break
             cmd = curl_cmd + " http://"+host_ip+path
-            print cmd
+            print(cmd)
             result = run_command(cmd)
             result = result.rstrip()
-            print result
+            print(result)
             assert result in target_name_list
             if result in target_hit_list:
                 target_hit_list.remove(result)
@@ -446,7 +446,7 @@ def validate_ingress_using_endpoint(p_client, ingress, workloads,
     target_name_list = []
     for pod in pods:
         target_name_list.append(pod.name)
-    print "target name list:" + str(target_name_list)
+    print(("target name list:" + str(target_name_list)))
     start = time.time()
     fqdn_available = False
     url = None
@@ -465,7 +465,7 @@ def validate_ingress_using_endpoint(p_client, ingress, workloads,
                     url = \
                         public_endpoint["protocol"].lower() + "://" + \
                         public_endpoint["hostname"]
-                    if "path" in public_endpoint.keys():
+                    if "path" in list(public_endpoint.keys()):
                         url += public_endpoint["path"]
     time.sleep(5)
     target_hit_list = target_name_list[:]
@@ -473,10 +473,10 @@ def validate_ingress_using_endpoint(p_client, ingress, workloads,
         if len(target_hit_list) == 0:
             break
         cmd = "curl " + url
-        print cmd
+        print(cmd)
         result = run_command(cmd)
         result = result.rstrip()
-        print result
+        print(result)
         assert result in target_name_list
         if result in target_hit_list:
             target_hit_list.remove(result)
@@ -649,7 +649,7 @@ def check_connectivity_between_pods(pod1, pod2, password,
 
     cmd = "ping -c 1 -W 1 " + pod_ip
     response = kubectl_pod_exec(pod1, cmd)
-    print "Actual ping Response" + str(response)
+    print(("Actual ping Response" + str(response)))
     if allow_connectivity:
         assert pod_ip in str(response) and "0% packet loss" in str(response)
     else:
@@ -691,7 +691,7 @@ def wait_for_pod_images(p_client, workload, ns_name, expectedimage, numofpods,
                         timeout=DEFAULT_TIMEOUT):
     start = time.time()
 
-    for key, value in workload.workloadLabels.iteritems():
+    for key, value in list(workload.workloadLabels.items()):
         label = key + "=" + value
     get_pods = "get pods -l" + label + " -n " + ns_name
     pods = execute_kubectl_cmd(get_pods)

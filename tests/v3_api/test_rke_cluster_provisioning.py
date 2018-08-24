@@ -1,4 +1,4 @@
-from common import *   # NOQA
+from .common import *   # NOQA
 from lib.aws import AmazonWebServices
 import pytest
 from threading import Thread

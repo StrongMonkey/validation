@@ -1,4 +1,4 @@
-from common import *   # NOQA
+from .common import *   # NOQA
 import pytest
 
 
@@ -157,7 +157,7 @@ def test_wl_pod_scale_up():
                                         containers=con,
                                         namespaceId=ns.id)
     workload = wait_for_wl_to_active(p_client, workload)
-    for key, value in workload.workloadLabels.iteritems():
+    for key, value in list(workload.workloadLabels.items()):
         label = key + "=" + value
     get_pods = "get pods -l" + label + " -n " + ns.name
     allpods = execute_kubectl_cmd(get_pods)
@@ -167,7 +167,7 @@ def test_wl_pod_scale_up():
     validate_workload(p_client, workload, "deployment", ns.name, 2)
     validate_pods_are_running_by_id(allpods, workload, ns.name)
 
-    for key, value in workload.workloadLabels.iteritems():
+    for key, value in list(workload.workloadLabels.items()):
         label = key + "=" + value
     allpods = execute_kubectl_cmd(get_pods)
     wait_for_pods_in_workload(p_client, workload, 2)
@@ -191,7 +191,7 @@ def test_wl_pod_scale_down():
 
     p_client.update(workload, scale=2, containers=con)
     wait_for_pods_in_workload(p_client, workload, 2)
-    for key, value in workload.workloadLabels.iteritems():
+    for key, value in list(workload.workloadLabels.items()):
         label = key + "=" + value
     get_pods = "get pods -l" + label + " -n " + ns.name
     allpods = execute_kubectl_cmd(get_pods)
@@ -200,7 +200,7 @@ def test_wl_pod_scale_down():
 
     p_client.update(workload, scale=1, containers=con)
     wait_for_pods_in_workload(p_client, workload, 1)
-    for key, value in workload.workloadLabels.iteritems():
+    for key, value in list(workload.workloadLabels.items()):
         label = key + "=" + value
     allpods = execute_kubectl_cmd(get_pods)
     validate_workload(p_client, workload, "deployment", ns.name)

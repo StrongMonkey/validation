@@ -1,4 +1,4 @@
-from common import *  # NOQA
+from .common import *  # NOQA
 import pytest
 
 CLUSTER_NAME = os.environ.get("CLUSTER_NAME", "")
